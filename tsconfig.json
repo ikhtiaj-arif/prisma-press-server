@@ -8,8 +8,15 @@
     "ignoreDeprecations": "6.0",
     "types": ["node"],
     "rootDir": "./",
-    "outDir": "dist"
+    "outDir": "./dist",
+    "sourceMap": true,
+    // "declarationMap": true,
+    "noUncheckedIndexedAccess": true,
+    "isolatedModules": true,
+    "noUncheckedSideEffectImports": true,
+    "moduleDetection": "force",
+    "skipLibCheck": true
   },
-  // "include": ["src"],
-  // "exclude": ["prisma.config.ts"]
+  // "include": ["src/**/*"],
+  "exclude": ["generated/prisma", "dist", "node_modules"]
 }
