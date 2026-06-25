@@ -12,9 +12,9 @@ const createToken = (
 const verifyToken = (token: string, secret: string) => {
   try {
     const decoded = jwt.verify(token, secret) as JwtPayload;
-    return decoded;
+    return { success: true, data: decoded };
   } catch (error: any) {
-    throw new Error(error.message || "Invalid token");
+    return { success: false, error: error.message || "Invalid token" };
   }
 };
 

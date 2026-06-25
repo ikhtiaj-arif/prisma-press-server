@@ -1,8 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
-import config from "../../config";
+import { Role } from "../../../generated/prisma/enums";
 import { catchAsync } from "../utils/catchAsync";
-import { jwtUtils } from "../utils/jwt";
 import { sendResponse } from "../utils/sendResponse";
 import { userServices } from "./user.service";
 
@@ -21,16 +20,23 @@ const userRegister = catchAsync(
   },
 );
 
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        email: string;
+        id: string;
+        name: string;
+        role: Role;
+      };
+    }
+  }
+}
+
 const getMyProfile = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const { accessToken } = req.cookies;
-
-    const verifyToken = jwtUtils.verifyToken(
-      accessToken,
-      config.jwt_access_secret,
-    );
-
-    const profile = await userServices.getMyProfileFromDB(verifyToken.id);
+    const { id } = req.user!;
+    const profile = await userServices.getMyProfileFromDB(id);
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.OK,
