@@ -1,8 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
-import { userServices } from "./user.service";
+import config from "../../config";
 import { catchAsync } from "../utils/catchAsync";
+import { jwtUtils } from "../utils/jwt";
 import { sendResponse } from "../utils/sendResponse";
+import { userServices } from "./user.service";
 
 const userRegister = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -19,6 +21,26 @@ const userRegister = catchAsync(
   },
 );
 
+const getMyProfile = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { accessToken } = req.cookies;
+
+    const verifyToken = jwtUtils.verifyToken(
+      accessToken,
+      config.jwt_access_secret,
+    );
+
+    const profile = await userServices.getMyProfileFromDB(verifyToken.id);
+    sendResponse(res, {
+      success: true,
+      statusCode: httpStatus.OK,
+      message: "User profile fetched successfully",
+      data: { profile },
+    });
+  },
+);
+
 export const userController = {
   userRegister,
+  getMyProfile,
 };
