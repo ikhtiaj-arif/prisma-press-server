@@ -84,7 +84,26 @@ const getMyPostStats = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {},
 );
 const deletePost = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {},
+  async (req: Request, res: Response, next: NextFunction) => {
+    const authorId = req.user?.id;
+    const { postId } = req.params;
+
+    const isAdmin = req.user?.role === "ADMIN";
+
+    const payload = req.body;
+
+    await postService.deletePostDB(
+      postId as string,
+      authorId as string,
+      isAdmin,
+    );
+    sendResponse(res, {
+      success: true,
+      message: "Post deleted successfully",
+      statusCode: httpStatus.OK,
+      data: null,
+    });
+  },
 );
 
 export const postController = {

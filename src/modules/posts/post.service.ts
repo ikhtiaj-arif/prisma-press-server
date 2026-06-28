@@ -1,3 +1,4 @@
+import { CommentStatus } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import { ICreatePostPayload, IUpdatePostPayload } from "./post.interface";
 
@@ -40,6 +41,7 @@ const updatePostDB = async (
   });
   return result;
 };
+
 const getAllPostsDB = async () => {
   const result = await prisma.post.findMany({
     include: {
@@ -51,6 +53,7 @@ const getAllPostsDB = async () => {
   });
   return result;
 };
+
 const getMyPostsDB = async (authorId: string) => {
   const result = await prisma.post.findMany({
     where: {
@@ -74,38 +77,76 @@ const getMyPostsDB = async (authorId: string) => {
   });
   return result;
 };
+
 const getPostByIdDB = async (postId: string) => {
+
+
+  const transactionResult = await prisma.$transaction(
+    async (tx) => {
+    await tx.post.update({
+      where: {
+        id: postId,
+      },
+      data: {
+        viewCount: {
+          increment: 1,
+        },
+      },
+    });
+
+    const post = await tx.post.findUniqueOrThrow({
+      where: {
+        id: postId,
+      },
+      include: {
+        author: {
+          omit: { password: true },
+        },
+        comments: {
+          where: {
+            status: CommentStatus.APPROVED,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+          },
+        },
+      },
+    });
+
+    return post;
+  });
+
+  return transactionResult
+};
+
+const getPostStatsDB = async (payload: any) => {
+  return payload;
+};
+
+const deletePostDB = async (
+  postId: string,
+  authorId: string,
+  isAdmin: boolean,
+) => {
   const post = await prisma.post.findUniqueOrThrow({
     where: {
       id: postId,
     },
   });
 
-  //update the view count of the post
-  const updatedPost = await prisma.post.update({
+  if (!isAdmin && post.authorId !== authorId) {
+    throw new Error("You are not authorized to delete this post");
+  }
+  await prisma.post.delete({
     where: {
       id: postId,
     },
-    data: {
-      viewCount: {
-        increment: 1,
-      },
-    },
-    include: {
-      author: {
-        omit: { password: true },
-      },
-      comments: true,
-    },
   });
-
-  return updatedPost;
-};
-const getPostStatsDB = async (payload: any) => {
-  return payload;
-};
-const deletePostDB = async (payload: any) => {
-  return payload;
 };
 
 export const postService = {
