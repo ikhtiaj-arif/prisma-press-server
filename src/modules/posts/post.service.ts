@@ -1,5 +1,5 @@
 import { prisma } from "../../lib/prisma";
-import { ICreatePostPayload } from "./post.interface";
+import { ICreatePostPayload, IUpdatePostPayload } from "./post.interface";
 
 const createPostDB = async (payload: ICreatePostPayload, userId: string) => {
   const result = await prisma.post.create({
@@ -10,8 +10,35 @@ const createPostDB = async (payload: ICreatePostPayload, userId: string) => {
   });
   return result;
 };
-const updatePostDB = async (payload: any) => {
-  return payload;
+const updatePostDB = async (
+  payload: IUpdatePostPayload,
+  authorId: string,
+  postId: string,
+  isAdmin: boolean,
+) => {
+  const post = await prisma.post.findUniqueOrThrow({
+    where: {
+      id: postId,
+    },
+  });
+
+  if (!isAdmin && post.authorId !== authorId) {
+    throw new Error("You are not authorized to update this post");
+  }
+
+  const result = await prisma.post.update({
+    where: {
+      id: postId,
+    },
+    data: payload,
+    include: {
+      author: {
+        omit: { password: true },
+      },
+      comments: true,
+    },
+  });
+  return result;
 };
 const getAllPostsDB = async () => {
   const result = await prisma.post.findMany({
@@ -27,24 +54,24 @@ const getAllPostsDB = async () => {
 const getMyPostsDB = async (authorId: string) => {
   const result = await prisma.post.findMany({
     where: {
-        authorId: authorId,
+      authorId: authorId,
     },
     orderBy: {
-        createdAt: "desc",
+      createdAt: "desc",
     },
     include: {
-        comments: true,
-        author: {
-            omit: {password: true},
-        },
-        // count the number of comments for each post
-     _count: {
+      comments: true,
+      author: {
+        omit: { password: true },
+      },
+      // count the number of comments for each post
+      _count: {
         select: {
-            comments: true,
-        }
-     }
-    }
-  })
+          comments: true,
+        },
+      },
+    },
+  });
   return result;
 };
 const getPostByIdDB = async (postId: string) => {
@@ -57,20 +84,20 @@ const getPostByIdDB = async (postId: string) => {
   //update the view count of the post
   const updatedPost = await prisma.post.update({
     where: {
-        id: postId,
+      id: postId,
     },
     data: {
-        viewCount: {
-            increment: 1,
-        }
+      viewCount: {
+        increment: 1,
+      },
     },
     include: {
-        author: {
-            omit: { password: true },
-        },
-        comments: true,
-    }
-})
+      author: {
+        omit: { password: true },
+      },
+      comments: true,
+    },
+  });
 
   return updatedPost;
 };

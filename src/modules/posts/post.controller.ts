@@ -20,7 +20,27 @@ const createPost = catchAsync(
   },
 );
 const updatePost = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {},
+  async (req: Request, res: Response, next: NextFunction) => {
+    const authorId = req.user?.id;
+    const { postId } = req.params;
+
+    const isAdmin = req.user?.role === "ADMIN";
+
+    const payload = req.body;
+
+    const result = await postService.updatePostDB(
+      payload,
+      authorId as string,
+      postId as string,
+      isAdmin,
+    );
+    sendResponse(res, {
+      success: true,
+      message: "Post updated successfully",
+      statusCode: httpStatus.OK,
+      data: result,
+    });
+  },
 );
 const getAllPosts = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
