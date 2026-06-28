@@ -1,4 +1,4 @@
-import { CommentStatus } from "../../../generated/prisma/enums";
+import { CommentStatus, PostStatus } from "../../../generated/prisma/enums";
 import { prisma } from "../../lib/prisma";
 import { ICreatePostPayload, IUpdatePostPayload } from "./post.interface";
 
@@ -79,10 +79,7 @@ const getMyPostsDB = async (authorId: string) => {
 };
 
 const getPostByIdDB = async (postId: string) => {
-
-
-  const transactionResult = await prisma.$transaction(
-    async (tx) => {
+  const transactionResult = await prisma.$transaction(async (tx) => {
     await tx.post.update({
       where: {
         id: postId,
@@ -121,11 +118,71 @@ const getPostByIdDB = async (postId: string) => {
     return post;
   });
 
-  return transactionResult
+  return transactionResult;
 };
 
-const getPostStatsDB = async (payload: any) => {
-  return payload;
+const getPostStatsDB = async () => {
+  const transactionResult = await prisma.$transaction(async (tx) => {
+    const [
+      totalPosts,
+      totalPublishedPosts,
+      totalDraftPosts,
+      totalArchivedPosts,
+      totalComments,
+      totalApprovedComments,
+      totalRejectedComments,
+      totalPostViewsAgg,
+    ] = await Promise.all([
+      await tx.post.count(),
+
+      await tx.post.count({
+        where: {
+          status: PostStatus.PUBLISHED,
+        },
+      }),
+      await tx.post.count({
+        where: {
+          status: PostStatus.DRAFT,
+        },
+      }),
+      await tx.post.count({
+        where: {
+          status: PostStatus.ARCHIVED,
+        },
+      }),
+
+      await tx.comment.count(),
+      await tx.comment.count({
+        where: {
+          status: CommentStatus.APPROVED,
+        },
+      }),
+      await tx.comment.count({
+        where: {
+          status: CommentStatus.REJECTED,
+        },
+      }),
+
+      await tx.post.aggregate({
+        _sum: {
+          viewCount: true,
+        },
+      }),
+    ]);
+    const totalPostViews = totalPostViewsAgg._sum.viewCount;
+
+    return {
+      totalPosts,
+      totalPublishedPosts,
+      totalDraftPosts,
+      totalArchivedPosts,
+      totalComments,
+      totalApprovedComments,
+      totalRejectedComments,
+      totalPostViews,
+    };
+  });
+  return transactionResult;
 };
 
 const deletePostDB = async (

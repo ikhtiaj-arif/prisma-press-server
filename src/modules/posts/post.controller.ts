@@ -81,7 +81,15 @@ const getPostById = catchAsync(
   },
 );
 const getMyPostStats = catchAsync(
-  async (req: Request, res: Response, next: NextFunction) => {},
+  async (req: Request, res: Response, next: NextFunction) => {
+    const result = await postService.getPostStatsDB();
+    sendResponse(res, {
+      success: true,
+      message: "Posts stats retrieved successfully",
+      statusCode: httpStatus.OK,
+      data: result,
+    });
+  },
 );
 const deletePost = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
