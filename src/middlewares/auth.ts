@@ -1,11 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import { Role } from "../../generated/prisma/enums";
-import { catchAsync } from "../modules/utils/catchAsync";
-import { jwtUtils } from "../modules/utils/jwt";
-import config from "../config";
 import { JwtPayload } from "jsonwebtoken";
+import { Role } from "../../generated/prisma/enums";
+import config from "../config";
 import { prisma } from "../lib/prisma";
-
+import { catchAsync } from "../utils/catchAsync";
+import { jwtUtils } from "../utils/jwt";
 
 declare global {
   namespace Express {
@@ -19,7 +18,6 @@ declare global {
     }
   }
 }
-
 
 export const auth = (...requiredRoles: Role[]) => {
   return catchAsync(async (req: Request, res: Response, next: NextFunction) => {

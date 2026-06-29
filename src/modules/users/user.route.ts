@@ -1,12 +1,7 @@
-import { NextFunction, Request, Response, Router } from "express";
-import { JwtPayload } from "jsonwebtoken";
+import { Router } from "express";
 import { Role } from "../../../generated/prisma/enums";
-import config from "../../config";
-import { prisma } from "../../lib/prisma";
-import { catchAsync } from "../utils/catchAsync";
-import { jwtUtils } from "../utils/jwt";
-import { userController } from "./user.controller";
 import { auth } from "../../middlewares/auth";
+import { userController } from "./user.controller";
 
 const router = Router();
 
@@ -16,5 +11,9 @@ router.get(
   auth(Role.USER, Role.ADMIN, Role.AUTHOR),
   userController.getMyProfile,
 );
-router.put("/my-profile", auth(Role.USER, Role.ADMIN, Role.AUTHOR), userController.updateMyProfile);
+router.put(
+  "/my-profile",
+  auth(Role.USER, Role.ADMIN, Role.AUTHOR),
+  userController.updateMyProfile,
+);
 export const userRouter = router;

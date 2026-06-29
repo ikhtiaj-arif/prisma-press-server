@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import httpStatus from "http-status";
 import { Role } from "../../../generated/prisma/enums";
-import { catchAsync } from "../utils/catchAsync";
-import { sendResponse } from "../utils/sendResponse";
+import { catchAsync } from "../../utils/catchAsync";
+import { sendResponse } from "../../utils/sendResponse";
 import { userServices } from "./user.service";
 
 const userRegister = catchAsync(
@@ -48,7 +48,7 @@ const getMyProfile = catchAsync(
 
 const updateMyProfile = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    const userId = req.user?.id as string
+    const userId = req.user?.id as string;
     const payload = req.body;
 
     const updatedProfile = await userServices.updateMyProfileInDB(
@@ -61,7 +61,8 @@ const updateMyProfile = catchAsync(
       message: "User profile updated successfully",
       data: { profile: updatedProfile },
     });
-  })
+  },
+);
 
 export const userController = {
   userRegister,
