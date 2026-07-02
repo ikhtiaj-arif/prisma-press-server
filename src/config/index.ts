@@ -16,4 +16,5 @@ export default {
   app_url: process.env.APP_URL,
   stripe_product_price_id: process.env.STRIPE_PRODUCT_PRICE_ID!,
   stripe_secret_key: process.env.STRIPE_SECRET_KEY!,
+  stripe_webhook_secret: process.env.STRIPE_WEBHOOK_SECRET!,
 };
